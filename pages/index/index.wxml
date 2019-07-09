@@ -1,10 +1,10 @@
 <!--index.wxml-->
 <view class="container">
-  <view class='progress_box'>
+  <view class='progress_box' bindtap="resetClick">
     <canvas class="progress_bg" canvas-id="canvasProgressbg" />
     <canvas class="progress_canvas" canvas-id="canvasProgress" />
     <view class="progress_text">
-      <view class="progress_dot"></view>
+      <!-- <view class="progress_dot"></view> -->
       <text class='progress_info'> {{progress_txt}}</text>
     </view>
   </view>
