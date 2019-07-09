@@ -23,13 +23,17 @@ Page({
     },
     drawCircle: function(step) {
         var context = wx.createCanvasContext('canvasProgress');
+        if (step == 0) {
+            console.log("canvas clear ....");
+            context.draw()
+            return
+        }
         // 设置渐变
         var gradient = context.createLinearGradient(200, 0, 0, 200);
         gradient.addColorStop("0", 'red');
         gradient.addColorStop("0.5", 'green');
         gradient.addColorStop("1.0", 'blue');
-
-        context.setLineWidth(10);
+        context.setLineWidth(6);
         context.setStrokeStyle(gradient);
         context.setLineCap('round')
         context.beginPath();
@@ -50,6 +54,7 @@ Page({
                     progress_txt: "开始"
                 });
                 clearInterval(this.countTimer);
+                this.drawCircle(0)
             }
         }, 1000)
     },
