@@ -1,41 +1,42 @@
 /**index.wxss**/
+
 .progress_box {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #fff;
+    position:relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
 }
 
 .progress_bg {
-  position: absolute;
-  width: 220px;
-  height: 220px;
+    position: absolute;
+    width: 200px;
+    height: 200px;
 }
 
 .progress_canvas {
-  width: 220px;
-  height: 220px;
+    width: 200px;
+    height: 200px;
 }
 
 .progress_text {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .progress_info {
-  font-size: 36rpx;
-  padding-left: 16rpx;
-  letter-spacing: 2rpx;
+    font-size: 36rpx;
+    padding-left: 16rpx;
+    letter-spacing: 2rpx;
 }
 
 .progress_dot {
-  width: 16rpx;
-  height: 16rpx;
-  border-radius: 50%;
-  background-color: #fb9126;
+    width: 16rpx;
+    height: 16rpx;
+    border-radius: 50%;
+    background-color: #fb9126;
 }
