@@ -1,34 +1,82 @@
 //index.js
 //获取应用实例
 const app = getApp()
+const audioPlayer = initAudioPlayer()
+
+function downloadCountDown(innerAudioContext) {
+    wx.downloadFile({
+        url: 'https://code.aliyun.com/lovejjfg/screenshot/raw/0e1c3c98eb7ff03c596e41530ed93b8bdaf7da8e/countdown.mp3',
+        success(res) {
+            // 只要服务器有响应数据，就会把响应内容写入文件并进入 success 回调，业务需要自行判断是否下载到了想要的内容
+            console.log(res)
+            if (res.statusCode === 200) {
+                wx.saveFile({
+                    tempFilePath: res.tempFilePath,
+                    success(res) {
+                        const resutPath = res.savedFilePath;
+                        console.log("resultPath:" + resutPath);
+                        innerAudioContext.src = resutPath
+                        wx.setStorage({
+                            key: "resultPath",
+                            data: resutPath
+                        })
+
+                    }
+                })
+                // console.log('path:' + res.tempFilePath)
+
+            }
+        },
+        fail(error) {
+            console.log(error)
+        }
+    })
+}
+
+function prepareAudio(innerAudioContext) {
+    try {
+        const value = wx.getStorageSync('resultPath');
+        if (value) {
+            console.log("读取文件成功！！")
+            innerAudioContext.src = value;
+        } else {
+            console.log(" else 读取文件失败！！")
+            downloadCountDown(innerAudioContext);
+        }
+    } catch (e) {
+        console.log(" error 读取文件失败！！" + e)
+        downloadCountDown(innerAudioContext);
+    }
+}
 
 function initAudioPlayer() {
     const innerAudioContext = wx.createInnerAudioContext();
     innerAudioContext.autoplay = false;
     innerAudioContext.loop = false;
-    innerAudioContext.src = 'https://code.aliyun.com/lovejjfg/screenshot/raw/0e1c3c98eb7ff03c596e41530ed93b8bdaf7da8e/countdown.mp3';
+    innerAudioContext.volume = 1;
     innerAudioContext.onPlay(() => {
         console.log('开始播放')
-    })
+    });
     innerAudioContext.onError((res) => {
         console.log(res.errMsg)
         console.log(res.errCode)
-    })
+    });
+    prepareAudio(innerAudioContext);
     return innerAudioContext;
 }
 
-const audioPlayer = initAudioPlayer()
+
 // 运动倒计时完成之后开始休息倒计时，休息倒计时完成之后更新 round 开始新的一轮运动倒计时；
 Page({
     data: {
         progress_txt: '开始',
         count: 0, // 设置 计数器 初始为0
-        sportCount: 5,
-        restCount: 3,
+        sportCount: 15,
+        restCount: 10,
         totalSecond: 0,
         countTimer: null, // 设置 定时器 初始为null
     },
-    drawProgressbg: function() {
+    drawProgressbg: function () {
         // 使用 wx.createContext 获取绘图上下文 context
         var ctx = wx.createCanvasContext('canvasProgressbg')
         ctx.setLineWidth(4); // 设置圆环的宽度
@@ -40,7 +88,7 @@ Page({
         ctx.stroke(); //对当前路径进行描边
         ctx.draw();
     },
-    drawCircle: function(step) {
+    drawCircle: function (step) {
         console.log('drawCircle:' + step)
 
         var context = wx.createCanvasContext('canvasProgress');
@@ -62,7 +110,7 @@ Page({
         context.stroke();
         context.draw()
     },
-    drawRestCircle: function(step) {
+    drawRestCircle: function (step) {
         console.log('drawRestCircle:' + step)
         var context = wx.createCanvasContext('canvasProgress');
         var gradient = context.createLinearGradient(200, 0, 0, 200);
@@ -78,7 +126,7 @@ Page({
         context.draw()
     },
 
-    countInterval: function() {
+    countInterval: function () {
         this.countTimer = setInterval((format, data) => {
             var sportCount = this.data.sportCount
             if (this.data.count <= sportCount) {
@@ -105,7 +153,7 @@ Page({
             this.data.count++;
         }, 1000)
     },
-    resetClick: function(event) {
+    resetClick: function (event) {
         console.log(this.data.count + ';;' + this.data.totalSecond);
         if (this.data.count >= this.data.totalSecond || this.data.count === 0) {
             this.data.count = 1;
@@ -113,12 +161,17 @@ Page({
         }
 
     },
-    playDidi: function() {
+    playDidi: function () {
+        audioPlayer.stop()
         audioPlayer.play()
+
+
     },
-    onReady: function() {
+    onReady: function () {
         this.data.totalSecond = this.data.sportCount + this.data.restCount
         console.log('totalCount:' + this.data.totalSecond)
         this.drawProgressbg();
     },
-})
+
+});
+
