@@ -2,6 +2,8 @@
 //获取应用实例
 const app = getApp()
 const audioPlayer = initAudioPlayer()
+const sportCanvasContext = initSportCanvas()
+const restCanvasContext = initRestCanvasContext();
 
 function downloadCountDown(innerAudioContext) {
     wx.downloadFile({
@@ -66,6 +68,33 @@ function initAudioPlayer() {
 }
 
 
+function initSportCanvas() {
+    const context = wx.createCanvasContext('canvasProgress');
+
+    // 设置渐变
+    var gradient = context.createLinearGradient(200, 0, 0, 200);
+    gradient.addColorStop("0", 'red');
+    gradient.addColorStop("0.5", 'red');
+    gradient.addColorStop("1.0", 'red');
+    context.setLineWidth(6);
+    context.setStrokeStyle(gradient);
+    context.setLineCap('round')
+    context.stroke();
+    return context
+}
+
+function initRestCanvasContext() {
+    var context = wx.createCanvasContext('canvasProgress');
+    var gradient = context.createLinearGradient(200, 0, 0, 200);
+    gradient.addColorStop("0", 'green');
+    gradient.addColorStop("0.5", 'green');
+    gradient.addColorStop("1.0", 'green');
+    context.setLineWidth(6);
+    context.setStrokeStyle(gradient);
+    context.setLineCap('round')
+    return context;
+}
+
 // 运动倒计时完成之后开始休息倒计时，休息倒计时完成之后更新 round 开始新的一轮运动倒计时；
 Page({
     data: {
@@ -90,36 +119,18 @@ Page({
     },
     drawCircle: function (step) {
         console.log('drawCircle:' + step)
-
-        var context = wx.createCanvasContext('canvasProgress');
         if (step == 0) {
             console.log("canvas clear ....");
-            context.draw()
+            sportCanvasContext.draw()
             return
         }
-        // 设置渐变
-        var gradient = context.createLinearGradient(200, 0, 0, 200);
-        gradient.addColorStop("0", 'red');
-        gradient.addColorStop("0.5", 'red');
-        gradient.addColorStop("1.0", 'red');
-        context.setLineWidth(6);
-        context.setStrokeStyle(gradient);
-        context.setLineCap('round')
-        context.beginPath();
-        context.arc(100, 100, 80, -Math.PI / 2, step * Math.PI - Math.PI / 2, false);
-        context.stroke();
-        context.draw()
+        sportCanvasContext.beginPath();
+        sportCanvasContext.arc(100, 100, 80, -Math.PI / 2, step * Math.PI - Math.PI / 2, false);
+        sportCanvasContext.draw()
     },
     drawRestCircle: function (step) {
         console.log('drawRestCircle:' + step)
-        var context = wx.createCanvasContext('canvasProgress');
-        var gradient = context.createLinearGradient(200, 0, 0, 200);
-        gradient.addColorStop("0", 'green');
-        gradient.addColorStop("0.5", 'green');
-        gradient.addColorStop("1.0", 'green');
-        context.setLineWidth(6);
-        context.setStrokeStyle(gradient);
-        context.setLineCap('round')
+
         context.beginPath();
         context.arc(100, 100, 80, -Math.PI / 2, step * Math.PI - Math.PI / 2, false);
         context.stroke();
