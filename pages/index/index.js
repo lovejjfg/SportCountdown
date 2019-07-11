@@ -1,13 +1,22 @@
 //index.js
 //获取应用实例
+const countdownPath = 'https://code.aliyun.com/lovejjfg/screenshot/raw/51d63f0524ffcd3d11cf9f7f7ab862e6f0c8a42c/countdown2.mp3';
+const finishAudioPath = 'https://code.aliyun.com/lovejjfg/screenshot/raw/51d63f0524ffcd3d11cf9f7f7ab862e6f0c8a42c/finish2.mp3';
+// const finishAudioPath = 'https://code.aliyun.com/lovejjfg/screenshot/raw/51d63f0524ffcd3d11cf9f7f7ab862e6f0c8a42c/finish2.mp3';
+var localCountdownAudioPath = '';
+var localFinishAudioPath = ''
+const key_countdown = 'COUNTDOWN_KEY'
+const key_fnish = 'COUNTDOWN_FINISH'
 const app = getApp()
 const audioPlayer = initAudioPlayer()
-const sportCanvasContext = initSportCanvas()
-const restCanvasContext = initRestCanvasContext();
+const canvasContext = initCanvasContext();
+const restGradient = initResttGradient();
+const sportGradient = initSportGradient();
 
-function downloadCountDown(innerAudioContext) {
+
+function downloadCountDown(innerAudioContext, path, key) {
     wx.downloadFile({
-        url: 'https://code.aliyun.com/lovejjfg/screenshot/raw/0e1c3c98eb7ff03c596e41530ed93b8bdaf7da8e/countdown.mp3',
+        url: path,
         success(res) {
             // 只要服务器有响应数据，就会把响应内容写入文件并进入 success 回调，业务需要自行判断是否下载到了想要的内容
             console.log(res)
@@ -17,12 +26,16 @@ function downloadCountDown(innerAudioContext) {
                     success(res) {
                         const resutPath = res.savedFilePath;
                         console.log("resultPath:" + resutPath);
-                        innerAudioContext.src = resutPath
+                        // innerAudioContext.src = resutPath
                         wx.setStorage({
-                            key: "resultPath",
+                            key: key,
                             data: resutPath
                         })
-
+                        if (countdownPath === path) {
+                            localCountdownAudioPath = resutPath;
+                        } else {
+                            localFinishAudioPath = resutPath
+                        }
                     }
                 })
                 // console.log('path:' + res.tempFilePath)
@@ -35,19 +48,24 @@ function downloadCountDown(innerAudioContext) {
     })
 }
 
-function prepareAudio(innerAudioContext) {
+function prepareAudio(innerAudioContext, key, path) {
     try {
-        const value = wx.getStorageSync('resultPath');
+        const value = wx.getStorageSync(key);
         if (value) {
             console.log("读取文件成功！！")
-            innerAudioContext.src = value;
+            if (key === key_fnish) {
+                localFinishAudioPath = value;
+            } else {
+                localCountdownAudioPath = value;
+            }
+            // innerAudioContext.src = value;
         } else {
-            console.log(" else 读取文件失败！！")
-            downloadCountDown(innerAudioContext);
+            console.log(" else 读取文件失败！！" + path)
+            downloadCountDown(innerAudioContext, path, key);
         }
     } catch (e) {
         console.log(" error 读取文件失败！！" + e)
-        downloadCountDown(innerAudioContext);
+        downloadCountDown(innerAudioContext, path, key);
     }
 }
 
@@ -63,36 +81,33 @@ function initAudioPlayer() {
         console.log(res.errMsg)
         console.log(res.errCode)
     });
-    prepareAudio(innerAudioContext);
+    prepareAudio(innerAudioContext, key_countdown, countdownPath);
+    prepareAudio(innerAudioContext, key_fnish, finishAudioPath);
     return innerAudioContext;
 }
 
 
-function initSportCanvas() {
-    const context = wx.createCanvasContext('canvasProgress');
+function initCanvasContext() {
+    var context = wx.createCanvasContext('canvasProgress');
+    context.setLineWidth(6);
+    context.setLineCap('round');
+    return context;
+}
 
-    // 设置渐变
-    var gradient = context.createLinearGradient(200, 0, 0, 200);
+function initSportGradient() {
+    var gradient = canvasContext.createLinearGradient(200, 0, 0, 200);
     gradient.addColorStop("0", 'red');
     gradient.addColorStop("0.5", 'red');
     gradient.addColorStop("1.0", 'red');
-    context.setLineWidth(6);
-    context.setStrokeStyle(gradient);
-    context.setLineCap('round')
-    context.stroke();
-    return context
+    return gradient;
 }
 
-function initRestCanvasContext() {
-    var context = wx.createCanvasContext('canvasProgress');
-    var gradient = context.createLinearGradient(200, 0, 0, 200);
+function initResttGradient() {
+    var gradient = canvasContext.createLinearGradient(200, 0, 0, 200);
     gradient.addColorStop("0", 'green');
     gradient.addColorStop("0.5", 'green');
     gradient.addColorStop("1.0", 'green');
-    context.setLineWidth(6);
-    context.setStrokeStyle(gradient);
-    context.setLineCap('round')
-    return context;
+    return gradient;
 }
 
 // 运动倒计时完成之后开始休息倒计时，休息倒计时完成之后更新 round 开始新的一轮运动倒计时；
@@ -100,8 +115,8 @@ Page({
     data: {
         progress_txt: '开始',
         count: 0, // 设置 计数器 初始为0
-        sportCount: 15,
-        restCount: 10,
+        sportCount: 10,
+        restCount: 20,
         totalSecond: 0,
         countTimer: null, // 设置 定时器 初始为null
     },
@@ -119,41 +134,53 @@ Page({
     },
     drawCircle: function (step) {
         console.log('drawCircle:' + step)
-        if (step == 0) {
+        if (step === 0) {
             console.log("canvas clear ....");
-            sportCanvasContext.draw()
+            canvasContext.draw()
             return
         }
-        sportCanvasContext.beginPath();
-        sportCanvasContext.arc(100, 100, 80, -Math.PI / 2, step * Math.PI - Math.PI / 2, false);
-        sportCanvasContext.draw()
+        // 设置渐变
+        canvasContext.setStrokeStyle(sportGradient);
+        canvasContext.beginPath();
+        canvasContext.arc(100, 100, 80, -Math.PI / 2, step * Math.PI - Math.PI / 2, false);
+        canvasContext.stroke();
+        canvasContext.draw()
     },
     drawRestCircle: function (step) {
         console.log('drawRestCircle:' + step)
-
-        context.beginPath();
-        context.arc(100, 100, 80, -Math.PI / 2, step * Math.PI - Math.PI / 2, false);
-        context.stroke();
-        context.draw()
+        canvasContext.setStrokeStyle(restGradient);
+        canvasContext.beginPath();
+        canvasContext.arc(100, 100, 80, -Math.PI / 2, step * Math.PI - Math.PI / 2, false);
+        canvasContext.stroke();
+        canvasContext.draw()
     },
 
     countInterval: function () {
         this.countTimer = setInterval((format, data) => {
-            var sportCount = this.data.sportCount
-            if (this.data.count <= sportCount) {
-                this.drawCircle(this.data.count / ((sportCount) / 2))
+            const sportCount = this.data.sportCount;
+            let currentCount = this.data.count;
+            if (currentCount <= sportCount) {
+                if (currentCount < sportCount) {
+                    this.playDidi(localCountdownAudioPath);
+                } else {
+                    this.playDidi(localFinishAudioPath);
+                }
+                this.drawCircle(currentCount / ((sportCount) / 2));
                 this.setData({
                     progress_txt: this.data.sportCount - this.data.count
                 }, data);
-                this.playDidi();
-            } else if (this.data.count <= this.data.totalSecond) {
+            } else if (currentCount <= this.data.totalSecond) {
+                if (currentCount < this.data.totalSecond) {
+                    this.playDidi(localCountdownAudioPath);
+                } else {
+                    this.playDidi(localFinishAudioPath);
+                }
                 // 运动倒计时完成，开始休息倒计时
                 // clearInterval(this.countTimer);
-                this.drawRestCircle((this.data.count - sportCount) / (this.data.restCount / 2))
+                this.drawRestCircle((currentCount - sportCount) / (this.data.restCount / 2))
                 this.setData({
                     progress_txt: this.data.restCount - this.data.count + this.data.sportCount
                 });
-                this.playDidi();
             } else {
                 this.setData({
                     progress_txt: "开始"
@@ -172,13 +199,15 @@ Page({
         }
 
     },
-    playDidi: function () {
-        audioPlayer.stop()
+    playDidi: function (path) {
+        audioPlayer.src = path;
+        audioPlayer.stop();
         audioPlayer.play()
 
 
     },
     onReady: function () {
+        console.log("onready....")
         this.data.totalSecond = this.data.sportCount + this.data.restCount
         console.log('totalCount:' + this.data.totalSecond)
         this.drawProgressbg();
