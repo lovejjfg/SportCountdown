@@ -88,10 +88,7 @@ function initAudioPlayer() {
 
 
 function initCanvasContext() {
-    var context = wx.createCanvasContext('canvasProgress');
-    context.setLineWidth(6);
-    context.setLineCap('round');
-    return context;
+    return wx.createCanvasContext('canvasProgress');
 }
 
 function initSportGradient() {
@@ -140,6 +137,8 @@ Page({
             return
         }
         // 设置渐变
+        canvasContext.setLineWidth(6);
+        canvasContext.setLineCap('round');
         canvasContext.setStrokeStyle(sportGradient);
         canvasContext.beginPath();
         canvasContext.arc(100, 100, 80, -Math.PI / 2, step * Math.PI - Math.PI / 2, false);
@@ -148,7 +147,10 @@ Page({
     },
     drawRestCircle: function (step) {
         console.log('drawRestCircle:' + step)
+        canvasContext.setLineWidth(6);
+        canvasContext.setLineCap('round');
         canvasContext.setStrokeStyle(restGradient);
+        canvasContext.setLineWidth(6);
         canvasContext.beginPath();
         canvasContext.arc(100, 100, 80, -Math.PI / 2, step * Math.PI - Math.PI / 2, false);
         canvasContext.stroke();
