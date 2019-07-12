@@ -1,0 +1,10 @@
+<view class="input_layout">
+    <input placeholder="锻炼时长" bindinput="bindExercise" type="number"/>
+    <input placeholder="休息时长" bindinput="bindRest" type="number"/>
+    <input placeholder="圈数" bindinput="bindRound" type="number"/>
+
+    <button bindtap="navigationStart">开始锻炼</button>
+    <button open-type="getUserInfo" lang="zh_CN" bindgetuserinfo="onGotUserInfo">获取用户信息</button>
+
+
+</view>

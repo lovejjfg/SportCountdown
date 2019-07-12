@@ -11,7 +11,7 @@ const app = getApp()
 const audioPlayer = initAudioPlayer()
 const canvasContext = initCanvasContext();
 const restGradient = initResttGradient();
-const sportGradient = initSportGradient();
+const exerciseGradient = initExerciseGradient();
 
 
 function downloadCountDown(innerAudioContext, path, key) {
@@ -91,7 +91,7 @@ function initCanvasContext() {
     return wx.createCanvasContext('canvasProgress');
 }
 
-function initSportGradient() {
+function initExerciseGradient() {
     var gradient = canvasContext.createLinearGradient(200, 0, 0, 200);
     gradient.addColorStop("0", 'red');
     gradient.addColorStop("0.5", 'red');
@@ -107,14 +107,17 @@ function initResttGradient() {
     return gradient;
 }
 
+let roundTotalSeconds = 0;
+let currentSecond = 0;
+let currentRound = 0;
+
 // 运动倒计时完成之后开始休息倒计时，休息倒计时完成之后更新 round 开始新的一轮运动倒计时；
 Page({
     data: {
         progress_txt: '开始',
-        count: 0, // 设置 计数器 初始为0
-        sportCount: 10,
-        restCount: 20,
-        totalSecond: 0,
+        exerciseSeconds: 10,
+        restSeconds: 20,
+        totalRounds: 1,
         countTimer: null, // 设置 定时器 初始为null
     },
     drawProgressbg: function () {
@@ -139,7 +142,7 @@ Page({
         // 设置渐变
         canvasContext.setLineWidth(6);
         canvasContext.setLineCap('round');
-        canvasContext.setStrokeStyle(sportGradient);
+        canvasContext.setStrokeStyle(exerciseGradient);
         canvasContext.beginPath();
         canvasContext.arc(100, 100, 80, -Math.PI / 2, step * Math.PI - Math.PI / 2, false);
         canvasContext.stroke();
@@ -159,44 +162,65 @@ Page({
 
     countInterval: function () {
         this.countTimer = setInterval((format, data) => {
-            const sportCount = this.data.sportCount;
-            let currentCount = this.data.count;
-            if (currentCount <= sportCount) {
-                if (currentCount < sportCount) {
+            const exerciseCount = this.data.exerciseSeconds;
+            console.log("currentSecond:" + currentSecond + ";;totalSecond:" + roundTotalSeconds);
+            if (currentSecond > roundTotalSeconds) {
+                currentRound++;
+                currentSecond = 1;
+                if (currentRound > this.data.totalRounds) {
+                    this.setData({
+                        progress_txt: "锻炼结束"
+                    });
+                    clearInterval(this.countTimer);
+                    this.drawCircle(0);
+                    currentRound = 1;
+                    currentSecond = 0;
+                    return
+                }
+            }
+            if (currentSecond <= exerciseCount) {
+                if (currentSecond < exerciseCount) {
                     this.playDidi(localCountdownAudioPath);
                 } else {
                     this.playDidi(localFinishAudioPath);
                 }
-                this.drawCircle(currentCount / ((sportCount) / 2));
+                this.drawCircle(currentSecond / ((exerciseCount) / 2));
                 this.setData({
-                    progress_txt: this.data.sportCount - this.data.count
+                    progress_txt: this.data.exerciseSeconds - currentSecond
                 }, data);
-            } else if (currentCount <= this.data.totalSecond) {
-                if (currentCount < this.data.totalSecond) {
+            } else if (currentSecond <= roundTotalSeconds) {
+                if (currentSecond < roundTotalSeconds) {
                     this.playDidi(localCountdownAudioPath);
                 } else {
                     this.playDidi(localFinishAudioPath);
                 }
                 // 运动倒计时完成，开始休息倒计时
                 // clearInterval(this.countTimer);
-                this.drawRestCircle((currentCount - sportCount) / (this.data.restCount / 2))
+                this.drawRestCircle((currentSecond - exerciseCount) / (this.data.restSeconds / 2));
                 this.setData({
-                    progress_txt: this.data.restCount - this.data.count + this.data.sportCount
+                    progress_txt: this.data.restSeconds - currentSecond + this.data.exerciseSeconds
                 });
             } else {
-                this.setData({
-                    progress_txt: "开始"
-                });
-                clearInterval(this.countTimer);
-                this.drawCircle(0);
+                // console.log("currentRound:" + currentRound + ";;totalRound:" + this.data.totalRounds);
+                // if (currentRound < this.data.totalRounds) {
+                //     currentSecond = 0;
+                //     currentRound++;
+                // } else {
+                //     this.setData({
+                //         progress_txt: "锻炼结束"
+                //     });
+                //     clearInterval(this.countTimer);
+                //     this.drawCircle(0);
+                // }
+
             }
-            this.data.count++;
+            currentSecond++;
         }, 1000)
     },
-    resetClick: function (event) {
-        console.log(this.data.count + ';;' + this.data.totalSecond);
-        if (this.data.count >= this.data.totalSecond || this.data.count === 0) {
-            this.data.count = 1;
+    resetClick: function () {
+        console.log(currentSecond + ';;' + roundTotalSeconds);
+        if (currentSecond === 0) {
+            currentSecond = 1;
             this.countInterval();
         }
 
@@ -210,10 +234,27 @@ Page({
     },
     onReady: function () {
         console.log("onready....")
-        this.data.totalSecond = this.data.sportCount + this.data.restCount
-        console.log('totalCount:' + this.data.totalSecond)
+        roundTotalSeconds = this.data.exerciseSeconds + this.data.restSeconds
+        console.log('totalCount:' + roundTotalSeconds)
         this.drawProgressbg();
     },
+    onLoad: function (option) {
+        console.log(option)
+        this.setData({
+            exerciseSeconds: parseInt(option.exerciseSeconds),
+            restSeconds: parseInt(option.restSeconds),
+            totalRounds: parseInt(option.totalRounds)
+        })
+        roundTotalSeconds = this.data.exerciseSeconds + this.data.restSeconds
+        currentRound = 1
+        // const eventChannel = this.getOpenerEventChannel()
+        // eventChannel.emit('acceptDataFromOpenedPage', {data: 'test'});
+        // eventChannel.emit('someEvent', {data: 'test'});
+        // 监听acceptDataFromOpenerPage事件，获取上一页面通过eventChannel传送到当前页面的数据
+        // eventChannel.on('acceptDataFromOpenerPage', function(data) {
+        //     console.log(data)
+        // })
+    }
 
 });
 
