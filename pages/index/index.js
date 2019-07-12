@@ -1,7 +1,7 @@
 //index.js
 //获取应用实例
-const countdownPath = 'https://code.aliyun.com/lovejjfg/screenshot/raw/51d63f0524ffcd3d11cf9f7f7ab862e6f0c8a42c/countdown2.mp3';
-const finishAudioPath = 'https://code.aliyun.com/lovejjfg/screenshot/raw/51d63f0524ffcd3d11cf9f7f7ab862e6f0c8a42c/finish2.mp3';
+const countdownPath = 'https://code.aliyun.com/lovejjfg/screenshot/raw/master/countdown2.mp3';
+const finishAudioPath = 'https://code.aliyun.com/lovejjfg/screenshot/raw/master/finish.mp3';
 // const finishAudioPath = 'https://code.aliyun.com/lovejjfg/screenshot/raw/51d63f0524ffcd3d11cf9f7f7ab862e6f0c8a42c/finish2.mp3';
 var localCountdownAudioPath = '';
 var localFinishAudioPath = ''
@@ -14,7 +14,7 @@ const restGradient = initResttGradient();
 const exerciseGradient = initExerciseGradient();
 
 
-function downloadCountDown(innerAudioContext, path, key) {
+function downloadCountDown(innerAudioContext, key, path) {
     wx.downloadFile({
         url: path,
         success(res) {
@@ -61,11 +61,11 @@ function prepareAudio(innerAudioContext, key, path) {
             // innerAudioContext.src = value;
         } else {
             console.log(" else 读取文件失败！！" + path)
-            downloadCountDown(innerAudioContext, path, key);
+            downloadCountDown(innerAudioContext, key, path);
         }
     } catch (e) {
         console.log(" error 读取文件失败！！" + e)
-        downloadCountDown(innerAudioContext, path, key);
+        downloadCountDown(innerAudioContext, key, path);
     }
 }
 
@@ -80,6 +80,8 @@ function initAudioPlayer() {
     innerAudioContext.onError((res) => {
         console.log(res.errMsg)
         console.log(res.errCode)
+        downloadCountDown(innerAudioContext, key_countdown, countdownPath);
+        downloadCountDown(innerAudioContext, key_fnish, finishAudioPath);
     });
     prepareAudio(innerAudioContext, key_countdown, countdownPath);
     prepareAudio(innerAudioContext, key_fnish, finishAudioPath);
